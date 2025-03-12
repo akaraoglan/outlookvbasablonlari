@@ -1,0 +1,49 @@
+Private Sub Application_ItemSend(ByVal Item As Object, Cancel As Boolean)
+
+Dim myNamespace As Outlook.namespace
+
+Dim myFolder As Outlook.MAPIFolder
+
+Dim originalMail As Outlook.MailItem
+
+Dim responseText As String
+
+
+
+On Error Resume Next
+
+
+
+If Item.Class = olMail Then
+
+responseText = Item.Body ' Cevap metnini al
+
+
+
+' Kontrol et, "merhaba işlem tamamlanmıştır" ifadesini içeriyorsa
+
+If InStr(1, responseText, "Muhasebe görünümü açma işlemi tamamlanmıştır", vbTextCompare) > 0 Then
+
+Set myNamespace = Application.GetNamespace("MAPI")
+
+' Taşımak istediğin klasörün adı
+
+Set myFolder = myNamespace.GetDefaultFolder(olFolderInbox).Folders("MALZEME TAKİP")
+
+
+
+' Orijinal e-postayı bul
+
+Set originalMail = Application.ActiveExplorer.Selection(1)
+
+If Not originalMail Is Nothing Then
+
+originalMail.Move myFolder
+
+End If
+
+End If
+
+End If
+
+End Sub
