@@ -1,0 +1,36 @@
+Sub MarkAllAsRead()
+    Dim namespace As Outlook.namespace
+    Dim folder As Outlook.folder
+    Dim subFolder As Outlook.folder
+    Dim Item As Object
+    Dim inbox As Outlook.folder
+    
+    ' Outlook Namespace (kendi posta kutusu)
+    Set namespace = Application.GetNamespace("MAPI")
+    
+    ' Gelen Kutusu
+    Set inbox = namespace.GetDefaultFolder(olFolderInbox)
+    
+    ' Gelen kutusundaki ve alt klasörlerdeki her öğeyi dolaş
+    Call MarkFolderAsRead(inbox)
+    
+    MsgBox "Tüm mesajlar okundu olarak işaretlendi.", vbInformation
+End Sub
+
+Sub MarkFolderAsRead(ByVal folder As Outlook.folder)
+    Dim subFolder As Outlook.folder
+    Dim Item As Object
+    
+    ' Klasördeki her öğeyi kontrol et
+    For Each Item In folder.Items
+        If Item.UnRead Then
+            Item.UnRead = False
+            Item.Save
+        End If
+    Next Item
+    
+    ' Alt klasörleri dolaş
+    For Each subFolder In folder.Folders
+        Call MarkFolderAsRead(subFolder)
+    Next subFolder
+End Sub
