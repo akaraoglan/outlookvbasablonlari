@@ -1,0 +1,60 @@
+Sub ReplyAllAddOriginalSenderOnly()
+
+    Dim olMail As MailItem
+    Dim olReply As MailItem
+    Dim originalBody As String
+    Dim senderEmail As String
+    Dim regex As Object
+    Dim matches As Object
+    Dim lastMatch As Object
+
+    ' E-posta seçili mi kontrol et
+    If Application.ActiveExplorer.Selection.Count = 0 Then
+        MsgBox "Lütfen önce bir e-posta seçin."
+        Exit Sub
+    End If
+
+    Set olMail = Application.ActiveExplorer.Selection.Item(1)
+
+    ' Tümünü yanıtla başlat
+    Set olReply = olMail.ReplyAll
+
+    ' E-posta gövdesini al
+    originalBody = olMail.Body
+
+    ' Regex oluştur
+    Set regex = CreateObject("VBScript.RegExp")
+    regex.Global = True
+    regex.IgnoreCase = True
+    regex.Pattern = "From:\s.*<(.+@.+\..+)>"
+
+    ' Tüm "From: ..." satırlarını bul
+    If regex.Test(originalBody) Then
+        Set matches = regex.Execute(originalBody)
+        Set lastMatch = matches(matches.Count - 1) ' En sondaki (en alttaki)
+
+        senderEmail = lastMatch.SubMatches(0)
+
+        ' Eğer başında mailto: varsa temizle
+        If InStr(LCase(senderEmail), "mailto:") = 1 Then
+            senderEmail = Mid(senderEmail, 8) ' 8. karakterden itibaren al
+        End If
+
+        ' Tüm alıcıları temizle (opsiyonel)
+        Dim rec As Recipient
+        For Each rec In olReply.Recipients
+            olReply.Recipients.Remove 1
+        Next
+
+        ' Sadece orijinal göndereni ekle
+        olReply.Recipients.Add senderEmail
+        olReply.Recipients.ResolveAll
+    Else
+        MsgBox "En alttaki gönderici e-posta adresi bulunamadı."
+    End If
+
+    ' Yanıt penceresini göster
+    olReply.Display
+
+End Sub
+
