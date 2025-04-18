@@ -1,0 +1,34 @@
+Private Sub Hatirlat() 
+Dim Response As Integer
+    Dim Task As Outlook.TaskItem
+    Dim ReminderTime As Date
+    Dim Mail As Outlook.MailItem
+    
+    If TypeOf Item Is Outlook.MailItem Then
+        Set Mail = Item
+        
+        ' Yanıt veya yönlendirme olup olmadığını kontrol et (RE: veya FW: içeriyorsa işlem yapma)
+        If InStr(1, Mail.Subject, "RE:", vbTextCompare) = 0 And InStr(1, Mail.Subject, "FW:", vbTextCompare) = 0 Then
+            Response = MsgBox("Bu maili takip etmek istiyor musun?", vbYesNo + vbQuestion, "Takip Hatırlatma")
+            
+            If Response = vbYes Then
+                Set Task = Application.CreateItem(olTaskItem)
+                
+                ' Görev başlığını mailin konu başlığı olarak ayarla
+                Task.Subject = "Takip: " & Mail.Subject
+                
+                ' Görev içeriğini oluştur
+                Task.Body = "Dün " & Mail.To & " kişisine şu maili gönderdin: " & vbCrLf & Mail.Subject
+                
+                ' Görevi ertesi sabah 08:00'e ayarla
+                ReminderTime = DateAdd("d", 1, Date) + TimeValue("08:00:00")
+                Task.DueDate = ReminderTime
+                Task.ReminderSet = True
+                Task.ReminderTime = ReminderTime
+                
+                ' Görevi kaydet
+                Task.Save
+            End If
+        End If
+    End If
+End Sub
